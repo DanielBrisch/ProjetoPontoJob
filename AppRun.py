@@ -7,41 +7,23 @@ from selenium.webdriver.common.keys import Keys
 from time import sleep
 
 time = 1
-user = ''
-senha = ''
 
-class MainApp(QWidget):
+
+class AppRun(QWidget):
     def __init__(self):
-        super().__init__()
-        self.user = ''
-        self.senha = ''
+        super().__init__(self, self.user, self.senha)
+        global user, senha
+        self.user = user
+        self.senha = senha
         self.initUI()
 
     def initUI(self):
         self.setWindowTitle("Interface com Inputs Centralizados")
-        self.resize(400, 300)  # Pode ajustar para o tamanho desejado
+        self.resize(400, 300)
 
         mainLayout = QVBoxLayout()
 
         mainLayout.addStretch()
-
-        input1Layout = QHBoxLayout()
-        input1Layout.addStretch()
-        self.input1 = CustomLineEdit()
-        input1Layout.addWidget(self.input1)
-        input1Layout.addStretch()
-        mainLayout.addLayout(input1Layout)
-
-        input2Layout = QHBoxLayout()
-        input2Layout.addStretch()
-        self.input2 = CustomLineEdit()
-        input2Layout.addWidget(self.input2)
-        input2Layout.addStretch()
-        mainLayout.addLayout(input2Layout)
-
-        self.saveButton = CustomButton("Salvar Valores")
-        self.saveButton.clicked.connect(self.saveValues)
-        mainLayout.addWidget(self.saveButton)
 
         self.startButton = CustomButton("Iniciar PontoJob")
         self.startButton.clicked.connect(self.codigoRun)
@@ -50,33 +32,15 @@ class MainApp(QWidget):
         mainLayout.addStretch()
 
         self.setLayout(mainLayout)
-
-    def saveValues(self):
-        global user, senha
-        user = self.input1.text()
-        senha = self.input2.text()
-
     def codigoRun(self):
         driver = webdriver.Chrome()
 
-        driver.get("https://www.google.com")
-
-        sleep(time)
-
-        barraGoogle = driver.find_element(By.NAME, "q")
-        barraGoogle.send_keys("PontoJob")
-        barraGoogle.send_keys(Keys.RETURN)
-
-        sleep(4)
-
-        first_result = driver.find_element(By.XPATH, '//*[@id="rso"]/div[1]/div/div/div/div/div/div/div[1]/div/span/a')
-        first_result.click()
+        driver.get("http://talentrh.com.br:3000/")
 
         sleep(time)
 
         userPontoJob = driver.find_element(By.XPATH, '//*[@id="root"]/div[1]/div/div/div/div/div/div/div/div/div[2]/div/div[1]/div/input')
         userPontoJob.send_keys(user)
-        userPontoJob.send_keys(Keys.RETURN)
 
         senhaPontoJob = driver.find_element(By.XPATH, '//*[@id="root"]/div[1]/div/div/div/div/div/div/div/div/div[2]/div/div[2]/div/input')
         senhaPontoJob.send_keys(senha)

@@ -15,7 +15,7 @@ class Home(QWidget):
         self.initUI()
 
     def initUI(self):
-        self.setWindowTitle("Home")
+        self.setWindowTitle("AutoJob")
         self.resize(400, 300)
 
         layout = QVBoxLayout()
@@ -70,10 +70,11 @@ class Home(QWidget):
         self.setLayout(layout)
 
     def saveValues(self):
-        user = self.input1.text()
-        senha = self.input2.text()
-        self.openAppRun(user, senha)  # Passamos user e senha como argumentos
+        self.user = self.input1.text()
+        self.senha = self.input2.text()
+        self.openAppRun(self.user, self.senha)  # Passamos user e senha como argumentos
 
     def openAppRun(self, user, senha):
         self.app_run = AppRun(user, senha)
         self.app_run.show()
+        self.close()

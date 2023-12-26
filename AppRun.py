@@ -1,14 +1,45 @@
+import ctypes
+from ctypes import wintypes
+from datetime import datetime
 from PyQt5.QtCore import QThread
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QApplication, QSpacerItem, QSizePolicy, QHBoxLayout, QCalendarWidget
+from PyQt5.QtWidgets import QWidget, QVBoxLayout
 from trio._core._thread_cache import WorkerThread
 
-from components.CustomWidget import CustomButton, CustomLineEdit
+from components.CustomWidget import CustomButton
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
 from time import sleep
 
 time = 2
+
+def is_workstation_locked():
+    UOI_NAME = 2
+    hDesktop = ctypes.windll.user32.OpenInputDesktop(0, False, 256)
+    if hDesktop == 0:
+        return True
+
+    lengthNeeded = wintypes.DWORD()
+    ctypes.windll.user32.GetUserObjectInformationW(hDesktop, UOI_NAME, None, 0, ctypes.byref(lengthNeeded))
+    name = ctypes.create_unicode_buffer(lengthNeeded.value)
+    ctypes.windll.user32.GetUserObjectInformationW(hDesktop, UOI_NAME, name, lengthNeeded.value, ctypes.byref(lengthNeeded))
+    ctypes.windll.user32.CloseDesktop(hDesktop)
+
+    return name.value != "Default"
+
+class SchedulerThread(QThread):
+    def __init__(self, action, hour, minute):
+        super(SchedulerThread, self).__init__()
+        self.action = action
+        self.target_time = datetime.time(hour, minute)
+
+    def run(self):
+        while True:
+            now = datetime.datetime.now().time()
+            if now.hour == self.target_time.hour and now.minute == self.target_time.minute:
+                if not is_workstation_locked():
+                    self.action()  # Executa a ação
+                    time.sleep(60)  # Pausa por um minuto para evitar múltiplas execuções
+            time.sleep(10)
 
 class AppRun(QWidget):
     def __init__(self, user, senha):
@@ -22,13 +53,6 @@ class AppRun(QWidget):
         self.resize(400, 300)
 
         mainLayout = QVBoxLayout()
-
-        mainLayout.addStretch()
-
-        self.calendar = QCalendarWidget(self)
-        mainLayout.addStretch()
-        self.calendar.setGridVisible(True)
-        mainLayout.addWidget(self.calendar)
 
         mainLayout.addStretch()
 
@@ -80,3 +104,11 @@ class WorkerThread(QThread):
 
         # clickBtnPontoConf = driver.find_element(By.XPATH, '//*[@id="react-confirm-alert"]/div/div/div/div/button[1]')
         # clickBtnPontoConf.click()
+
+def main():
+    if not is_workstation_locked():
+        user = "seu_usuario"
+        senha = "sua_senha"
+        worker = WorkerThread(user, senha)
+        worker.start()
+        worker.wait()
